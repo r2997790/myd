@@ -1,31 +1,139 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>How to record a video with JavaScript</title>
-    <link rel="stylesheet" type="text/css" href="styles.css">
-  </head>
-  <body>
-    <div id="content">
-      <div>
-        <button type="button" id="buttonStart">Start</button>
-        <button type="button" id="buttonStop" disabled>Stop</button>
-        <button type="button" id="emailButton">Email</button>
-        <button type="button" id="shareButton">Share</button>
-      </div>
-      <div>
-        <video autoplay muted playsinline id="videoLive"></video>
-      </div>
-      <div>
-        <video controls playsinline id="videoRecorded"></video>
-      </div>
-      <a id="downloadLink" style="display: none;"></a>
-    </div>
-    <div id="rotateMessage">
-      Rotate your phone so it is in landscape mode
-    </div>
-    <script src="main.js"></script>
-    <script src="rotation.js"></script>
-  </body>
+<html>
+<head>
+  <title>Video Recording</title>
+</head>
+<body>
+  <video id="videoLive" width="320" height="240" autoplay></video>
+  <video id="videoRecorded" width="320" height="240" controls></video>
+  <button id="buttonStart">Start Recording</button>
+  <button id="buttonStop" disabled>Stop Recording</button>
+  <button id="shareButton">Share Video</button>
+
+  <script>
+    async function uploadToDrive(file, fileName) {
+      const apiKey = 'AIzaSyD8Ic03HrQku5sXbI9-9l558NJ9ch-lLeM';
+      const folderId = '1nZcp0nIWpZJgHrCksGvu-MBBoUWeKzi5';
+
+      const metadata = {
+        name: fileName,
+        parents: [folderId],
+      };
+
+      const formData = new FormData();
+      formData.append(
+        'metadata',
+        new Blob([JSON.stringify(metadata)], { type: 'application/json' })
+      );
+      formData.append('file', file);
+
+      const response = await fetch(
+        `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&key=${apiKey}`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+
+      return response.json();
+    }
+
+    async function main() {
+      const buttonStart = document.querySelector('#buttonStart');
+      const buttonStop = document.querySelector('#buttonStop');
+      const videoLive = document.querySelector('#videoLive');
+      const videoRecorded = document.querySelector('#videoRecorded');
+      const shareButton = document.querySelector('#shareButton');
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true,
+      });
+
+      videoLive.srcObject = stream;
+
+      if (!MediaRecorder.isTypeSupported('video/webm')) {
+        console.warn('video/webm is not supported');
+      }
+
+      const chunks = [];
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'video/webm',
+      });
+
+      buttonStart.addEventListener('click', () => {
+        mediaRecorder.start();
+        buttonStart.setAttribute('disabled', '');
+        buttonStop.removeAttribute('disabled');
+      });
+
+      buttonStop.addEventListener('click', () => {
+        mediaRecorder.stop();
+        buttonStart.removeAttribute('disabled');
+        buttonStop.setAttribute('disabled', '');
+      });
+
+      mediaRecorder.addEventListener('dataavailable', event => {
+        chunks.push(event.data);
+        videoRecorded.src = URL.createObjectURL(event.data);
+      });
+
+      mediaRecorder.addEventListener('stop', async () => {
+        const recordedBlob = new Blob(chunks, { type: 'video/webm' });
+
+        try {
+          // Upload video to Google Drive
+          const response = await uploadToDrive(recordedBlob, 'recorded_video.webm');
+
+          // Get the public link to the uploaded video
+          const videoURL = `https://drive.google.com/uc?export=download&id=${response.id}`;
+          console.log('Video URL:', videoURL);
+
+          // Create a share link
+          if (navigator.share) {
+            navigator.share({
+              title: 'Shared Video',
+              text: 'Check out this video',
+              url: videoURL,
+            })
+              .then(() => {
+                console.log('Video shared successfully');
+              })
+              .catch(error => {
+                console.error('Error sharing video:', error);
+              });
+          } else {
+            console.warn('Web Share API not supported');
+          }
+        } catch (error) {
+          console.error('Error uploading video:', error);
+        }
+      });
+
+      shareButton.addEventListener('click', () => {
+        const recordedBlob = new Blob(chunks, { type: 'video/webm' });
+        const videoURL = URL.createObjectURL(recordedBlob);
+
+        // Create a share link
+        if (navigator.share) {
+          navigator.share({
+            title: 'Shared Video',
+            text: 'Check out this video',
+            url: videoURL,
+          })
+            .then(() => {
+              console.log('Video shared successfully');
+            })
+            .catch(error => {
+              console.error('Error sharing video:', error);
+            });
+        } else {
+          console.warn('Web Share API not supported');
+        }
+      });
+    }
+
+    main();
+  </script>
+</body>
 </html>
