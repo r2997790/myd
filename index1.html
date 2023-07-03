@@ -9,11 +9,12 @@
   <button id="buttonStart">Start Recording</button>
   <button id="buttonStop" disabled>Stop Recording</button>
   <button id="shareButton">Share Video</button>
+  <button id="testButton">Test Google Drive Upload</button>
 
   <script>
     async function uploadToDrive(file, fileName) {
-      const apiKey = 'AIzaSyD8Ic03HrQku5sXbI9-9l558NJ9ch-lLeM';
-      const folderId = '1nZcp0nIWpZJgHrCksGvu-MBBoUWeKzi5';
+      const apiKey = 'YOUR_GOOGLE_DRIVE_API_KEY';
+      const folderId = 'YOUR_PUBLIC_FOLDER_ID';
 
       const metadata = {
         name: fileName,
@@ -44,6 +45,7 @@
       const videoLive = document.querySelector('#videoLive');
       const videoRecorded = document.querySelector('#videoRecorded');
       const shareButton = document.querySelector('#shareButton');
+      const testButton = document.querySelector('#testButton');
 
       const stream = await navigator.mediaDevices.getUserMedia({
         video: true,
@@ -129,6 +131,18 @@
             });
         } else {
           console.warn('Web Share API not supported');
+        }
+      });
+
+      testButton.addEventListener('click', async () => {
+        const testFile = new Blob(['Test file content'], { type: 'text/plain' });
+
+        try {
+          // Upload test file to Google Drive
+          const response = await uploadToDrive(testFile, 'test_file.txt');
+          console.log('Test file uploaded:', response);
+        } catch (error) {
+          console.error('Error uploading test file:', error);
         }
       });
     }
