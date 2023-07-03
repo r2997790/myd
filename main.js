@@ -47,7 +47,7 @@ async function main() {
       const response = await uploadToDrive(recordedBlob, 'recorded_video.webm');
 
       // Get the public link to the uploaded video
-      const videoURL = response.data.webContentLink;
+      const videoURL = `https://drive.google.com/uc?export=download&id=${response.id}`;
       console.log('Video URL:', videoURL);
 
       // Create a share link
@@ -75,7 +75,7 @@ async function main() {
   document.body.appendChild(shareButton);
 
   async function uploadToDrive(file, fileName) {
-    const token = 'AIzaSyD8Ic03HrQku5sXbI9-9l558NJ9ch-lLeM';
+    const apiKey = 'AIzaSyD8Ic03HrQku5sXbI9-9l558NJ9ch-lLeM';
     const folderId = '1nZcp0nIWpZJgHrCksGvu-MBBoUWeKzi5';
 
     const metadata = {
@@ -91,7 +91,7 @@ async function main() {
     formData.append('file', file);
 
     const response = await fetch(
-      `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&access_token=${token}`,
+      `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&key=${apiKey}`,
       {
         method: 'POST',
         body: formData,
@@ -103,3 +103,4 @@ async function main() {
 }
 
 main();
+
