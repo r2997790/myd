@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to record a video with JavaScript</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+  </head>
+  <body>
+    <div id="content">
+      <div>
+        <button type="button" id="buttonStart">Start</button>
+        <button type="button" id="buttonStop" disabled>Stop</button>
+        <button type="button" id="emailButton">Email</button>
+      </div>
+      <div>
+        <video autoplay muted playsinline id="videoLive"></video>
+      </div>
+      <div>
+        <video controls playsinline id="videoRecorded"></video>
+      </div>
+    </div>
+    <div id="rotateMessage">
+      Rotate your phone so it is in landscape mode
+    </div>
+    <script src="main.js"></script>
+    <script src="rotation.js"></script>
+  </body>
+</html>

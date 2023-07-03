@@ -3,7 +3,7 @@ async function main() {
   const buttonStop = document.querySelector('#buttonStop');
   const videoLive = document.querySelector('#videoLive');
   const videoRecorded = document.querySelector('#videoRecorded');
-  const emailButton = document.createElement('button');
+  const emailButton = document.querySelector('#emailButton');
 
   const stream = await navigator.mediaDevices.getUserMedia({
     video: true,
@@ -36,15 +36,12 @@ async function main() {
     videoRecorded.src = URL.createObjectURL(event.data);
   });
 
-  emailButton.textContent = 'Send Email';
   emailButton.addEventListener('click', () => {
     const email = 'Ryan.wells@Dstny.com';
     const subject = 'Video submission';
     const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
     window.open(mailtoLink);
   });
-
-  document.body.appendChild(emailButton);
 }
 
 main();

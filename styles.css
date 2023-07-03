@@ -1,0 +1,30 @@
+#content {
+  display: none;
+}
+
+#rotateMessage {
+  display: none;
+  text-align: center;
+  font-size: 24px;
+  padding: 50px;
+}
+
+@media (orientation: landscape) {
+  #content {
+    display: block;
+  }
+
+  #rotateMessage {
+    display: none;
+  }
+}
+
+@media (orientation: portrait) {
+  #content {
+    display: none;
+  }
+
+  #rotateMessage {
+    display: block;
+  }
+}
