@@ -3,6 +3,8 @@ async function main() {
   const buttonStop = document.querySelector('#buttonStop');
   const videoLive = document.querySelector('#videoLive');
   const videoRecorded = document.querySelector('#videoRecorded');
+  const emailButton = document.querySelector('#emailButton');
+  const shareButton = document.createElement('button');
 
   const stream = await navigator.mediaDevices.getUserMedia({
     video: true,
@@ -15,7 +17,7 @@ async function main() {
     console.warn('video/webm is not supported');
   }
 
-  const chunks = []; // Added variable to store recorded video chunks
+  const chunks = [];
 
   const mediaRecorder = new MediaRecorder(stream, {
     mimeType: 'video/webm',
@@ -34,7 +36,7 @@ async function main() {
   });
 
   mediaRecorder.addEventListener('dataavailable', event => {
-    chunks.push(event.data); // Store each recorded chunk in the array
+    chunks.push(event.data);
     videoRecorded.src = URL.createObjectURL(event.data);
   });
 
@@ -54,6 +56,31 @@ async function main() {
     URL.revokeObjectURL(videoURL);
     document.body.removeChild(downloadLink);
   });
+
+  shareButton.textContent = 'Share Video';
+  shareButton.addEventListener('click', () => {
+    const recordedBlob = new Blob(chunks, { type: 'video/webm' });
+    const videoURL = URL.createObjectURL(recordedBlob);
+
+    // Create a share link
+    if (navigator.share) {
+      navigator.share({
+        title: 'Shared Video',
+        text: 'Check out this video',
+        url: videoURL,
+      })
+        .then(() => {
+          console.log('Video shared successfully');
+        })
+        .catch(error => {
+          console.error('Error sharing video:', error);
+        });
+    } else {
+      console.warn('Web Share API not supported');
+    }
+  });
+
+  document.body.appendChild(shareButton);
 }
 
 main();
