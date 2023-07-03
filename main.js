@@ -18,7 +18,6 @@ async function main() {
   }
 
   const chunks = [];
-
   const mediaRecorder = new MediaRecorder(stream, {
     mimeType: 'video/webm',
   });
@@ -40,47 +39,67 @@ async function main() {
     videoRecorded.src = URL.createObjectURL(event.data);
   });
 
-  mediaRecorder.addEventListener('stop', () => {
+  mediaRecorder.addEventListener('stop', async () => {
     const recordedBlob = new Blob(chunks, { type: 'video/webm' });
-    const videoURL = URL.createObjectURL(recordedBlob);
 
-    // Create a download link
-    const downloadLink = document.createElement('a');
-    downloadLink.href = videoURL;
-    downloadLink.download = 'recorded_video.webm';
-    downloadLink.style.display = 'none';
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
+    try {
+      // Upload video to Google Drive
+      const response = await uploadToDrive(recordedBlob, 'recorded_video.webm');
 
-    // Clean up resources
-    URL.revokeObjectURL(videoURL);
-    document.body.removeChild(downloadLink);
-  });
+      // Get the public link to the uploaded video
+      const videoURL = response.data.webContentLink;
+      console.log('Video URL:', videoURL);
 
-  shareButton.textContent = 'Share Video';
-  shareButton.addEventListener('click', () => {
-    const recordedBlob = new Blob(chunks, { type: 'video/webm' });
-    const videoURL = URL.createObjectURL(recordedBlob);
-
-    // Create a share link
-    if (navigator.share) {
-      navigator.share({
-        title: 'Shared Video',
-        text: 'Check out this video',
-        url: videoURL,
-      })
-        .then(() => {
-          console.log('Video shared successfully');
+      // Create a share link
+      if (navigator.share) {
+        navigator.share({
+          title: 'Shared Video',
+          text: 'Check out this video',
+          url: videoURL,
         })
-        .catch(error => {
-          console.error('Error sharing video:', error);
-        });
-    } else {
-      console.warn('Web Share API not supported');
+          .then(() => {
+            console.log('Video shared successfully');
+          })
+          .catch(error => {
+            console.error('Error sharing video:', error);
+          });
+      } else {
+        console.warn('Web Share API not supported');
+      }
+    } catch (error) {
+      console.error('Error uploading video:', error);
     }
   });
 
+  shareButton.textContent = 'Share Video';
   document.body.appendChild(shareButton);
+
+  async function uploadToDrive(file, fileName) {
+    const token = 'AIzaSyD8Ic03HrQku5sXbI9-9l558NJ9ch-lLeM';
+    const folderId = '1nZcp0nIWpZJgHrCksGvu-MBBoUWeKzi5';
+
+    const metadata = {
+      name: fileName,
+      parents: [folderId],
+    };
+
+    const formData = new FormData();
+    formData.append(
+      'metadata',
+      new Blob([JSON.stringify(metadata)], { type: 'application/json' })
+    );
+    formData.append('file', file);
+
+    const response = await fetch(
+      `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&access_token=${token}`,
+      {
+        method: 'POST',
+        body: formData,
+      }
+    );
+
+    return response.json();
+  }
 }
 
 main();
