@@ -9,32 +9,21 @@
   <button id="buttonStart">Start Recording</button>
   <button id="buttonStop" disabled>Stop Recording</button>
   <button id="shareButton">Share Video</button>
-  <button id="testButton">Test Google Drive Upload</button>
 
   <script>
-    async function uploadToDrive(file, fileName) {
-      const apiKey = 'YOUR_GOOGLE_DRIVE_API_KEY';
-      const folderId = 'YOUR_PUBLIC_FOLDER_ID';
+    async function uploadToOneDrive(file, fileName) {
+      const clientId = '33672ed5-d72c-4188-9d8d-54aff626bf1a';
+      const accessToken = 'https://login.microsoftonline.com/04ed3cc3-4e36-49c0-a726-6fe0c694fc5a/oauth2/token';
+      const uploadURL = 'https://graph.microsoft.com/v1.0/me/drive/root:/';
 
-      const metadata = {
-        name: fileName,
-        parents: [folderId],
-      };
-
-      const formData = new FormData();
-      formData.append(
-        'metadata',
-        new Blob([JSON.stringify(metadata)], { type: 'application/json' })
-      );
-      formData.append('file', file);
-
-      const response = await fetch(
-        `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&key=${apiKey}`,
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
+      const response = await fetch(uploadURL + fileName + ':/content', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': file.type
+        },
+        body: file
+      });
 
       return response.json();
     }
@@ -45,7 +34,6 @@
       const videoLive = document.querySelector('#videoLive');
       const videoRecorded = document.querySelector('#videoRecorded');
       const shareButton = document.querySelector('#shareButton');
-      const testButton = document.querySelector('#testButton');
 
       const stream = await navigator.mediaDevices.getUserMedia({
         video: true,
@@ -84,11 +72,11 @@
         const recordedBlob = new Blob(chunks, { type: 'video/webm' });
 
         try {
-          // Upload video to Google Drive
-          const response = await uploadToDrive(recordedBlob, 'recorded_video.webm');
+          // Upload video to OneDrive
+          const response = await uploadToOneDrive(recordedBlob, 'recorded_video.webm');
 
-          // Get the public link to the uploaded video
-          const videoURL = `https://drive.google.com/uc?export=download&id=${response.id}`;
+          // Get the shared link to the uploaded video
+          const videoURL = response['@microsoft.graph.downloadUrl'];
           console.log('Video URL:', videoURL);
 
           // Create a share link
@@ -131,18 +119,6 @@
             });
         } else {
           console.warn('Web Share API not supported');
-        }
-      });
-
-      testButton.addEventListener('click', async () => {
-        const testFile = new Blob(['Test file content'], { type: 'text/plain' });
-
-        try {
-          // Upload test file to Google Drive
-          const response = await uploadToDrive(testFile, 'test_file.txt');
-          console.log('Test file uploaded:', response);
-        } catch (error) {
-          console.error('Error uploading test file:', error);
         }
       });
     }
