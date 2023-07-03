@@ -3,7 +3,6 @@ async function main() {
   const buttonStop = document.querySelector('#buttonStop');
   const videoLive = document.querySelector('#videoLive');
   const videoRecorded = document.querySelector('#videoRecorded');
-  const emailButton = document.querySelector('#emailButton');
 
   const stream = await navigator.mediaDevices.getUserMedia({
     video: true,
@@ -15,6 +14,8 @@ async function main() {
   if (!MediaRecorder.isTypeSupported('video/webm')) {
     console.warn('video/webm is not supported');
   }
+
+  const chunks = []; // Added variable to store recorded video chunks
 
   const mediaRecorder = new MediaRecorder(stream, {
     mimeType: 'video/webm',
@@ -33,14 +34,25 @@ async function main() {
   });
 
   mediaRecorder.addEventListener('dataavailable', event => {
+    chunks.push(event.data); // Store each recorded chunk in the array
     videoRecorded.src = URL.createObjectURL(event.data);
   });
 
-  emailButton.addEventListener('click', () => {
-    const email = 'Ryan.wells@Dstny.com';
-    const subject = 'Video submission';
-    const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
-    window.open(mailtoLink);
+  mediaRecorder.addEventListener('stop', () => {
+    const recordedBlob = new Blob(chunks, { type: 'video/webm' });
+    const videoURL = URL.createObjectURL(recordedBlob);
+
+    // Create a download link
+    const downloadLink = document.createElement('a');
+    downloadLink.href = videoURL;
+    downloadLink.download = 'recorded_video.webm';
+    downloadLink.style.display = 'none';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+
+    // Clean up resources
+    URL.revokeObjectURL(videoURL);
+    document.body.removeChild(downloadLink);
   });
 }
 
