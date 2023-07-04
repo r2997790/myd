@@ -21,7 +21,10 @@
       height: 100vh;
     }
     #videoContainer {
-      max-height: 300px;
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      height: 200px;
     }
   </style>
 </head>
@@ -89,17 +92,13 @@
           greenBackground.style.display = 'none';
           redBackground.style.display = 'block';
           mediaRecorder.stop();
-          videoContainer.style.height = '300px'; // Set a fixed height in vertical orientation
+          videoContainer.style.display = 'none';
         } else {
           // Horizontal orientation
           redBackground.style.display = 'none';
           greenBackground.style.display = 'block';
           mediaRecorder.start();
-          if (window.innerWidth < window.innerHeight) {
-            videoContainer.style.height = 'calc(90vh - 40px)'; // Subtract 40px to account for the button height
-          } else {
-            videoContainer.style.height = 'calc(100vh - 40px)'; // Subtract 40px to account for the button height
-          }
+          videoContainer.style.display = 'block';
         }
       }
   
