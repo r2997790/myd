@@ -89,21 +89,17 @@
           greenBackground.style.display = 'none';
           redBackground.style.display = 'block';
           mediaRecorder.stop();
+          videoContainer.style.height = '300px'; // Set a fixed height in vertical orientation
         } else {
           // Horizontal orientation
           redBackground.style.display = 'none';
           greenBackground.style.display = 'block';
           mediaRecorder.start();
-        }
-  
-        if (window.innerWidth < window.innerHeight) {
-          videoContainer.style.height = '90vh';
-        } else {
-          videoContainer.style.height = '100vh';
-        }
-  
-        if (videoContainer.clientHeight > 300) {
-          videoContainer.style.height = '300px';
+          if (window.innerWidth < window.innerHeight) {
+            videoContainer.style.height = '90vh';
+          } else {
+            videoContainer.style.height = '100vh';
+          }
         }
       }
   
