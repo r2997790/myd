@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Orientation Detection</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    #red-background {
+      background-color: red;
+      width: 100vw;
+      height: 100vh;
+    }
+    #green-background {
+      background-color: green;
+      width: 100vw;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <div id="red-background"></div>
+  <div id="green-background"></div>
+
+  <script>
+    function handleOrientationChange() {
+      var orientation = window.orientation;
+
+      if (orientation === 0 || orientation === 180) {
+        // Vertical orientation
+        document.getElementById('red-background').style.display = 'block';
+        document.getElementById('green-background').style.display = 'none';
+      } else {
+        // Horizontal orientation
+        document.getElementById('red-background').style.display = 'none';
+        document.getElementById('green-background').style.display = 'block';
+      }
+    }
+
+    // Initial call to handleOrientationChange
+    handleOrientationChange();
+
+    // Listen for orientation changes
+    window.addEventListener('orientationchange', handleOrientationChange);
+  </script>
+</body>
+</html>
