@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to record a video with JavaScript</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    #red-background {
+      background-color: red;
+      width: 100vw;
+      height: 100vh;
+    }
+    #green-background {
+      background-color: green;
+      width: 100vw;
+      height: 100vh;
+    }
+    #videoContainer {
+      height: 90vh;
+    }
+  </style>
+</head>
+<body>
+  <div id="red-background"></div>
+  <div id="green-background">
+    <div>
+      <button type="button" id="buttonStart">Start</button>
+      <button type="button" id="buttonStop" disabled>Stop</button>
+    </div>
+    <div id="videoContainer">
+      <video autoplay muted playsinline id="videoLive"></video>
+    </div>
+    <div>
+      <video controls playsinline id="videoRecorded"></video>
+    </div>
+  </div>
+  
+  <script>
+    async function main() {
+      const buttonStart = document.querySelector('#buttonStart');
+      const buttonStop = document.querySelector('#buttonStop');
+      const videoLive = document.querySelector('#videoLive');
+      const videoRecorded = document.querySelector('#videoRecorded');
+      const redBackground = document.querySelector('#red-background');
+      const greenBackground = document.querySelector('#green-background');
+      const videoContainer = document.querySelector('#videoContainer');
+  
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true,
+      });
+  
+      videoLive.srcObject = stream;
+  
+      if (!MediaRecorder.isTypeSupported('video/webm')) {
+        console.warn('video/webm is not supported');
+      }
+  
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'video/webm',
+      });
+  
+      buttonStart.addEventListener('click', () => {
+        mediaRecorder.start();
+        buttonStart.setAttribute('disabled', '');
+        buttonStop.removeAttribute('disabled');
+      });
+  
+      buttonStop.addEventListener('click', () => {
+        mediaRecorder.stop();
+        buttonStart.removeAttribute('disabled');
+        buttonStop.setAttribute('disabled', '');
+      });
+  
+      mediaRecorder.addEventListener('dataavailable', event => {
+        videoRecorded.src = URL.createObjectURL(event.data);
+      });
+  
+      function handleOrientationChange() {
+        const orientation = window.orientation || screen.orientation.angle;
+  
+        if (orientation === 0 || orientation === 180) {
+          // Vertical orientation
+          greenBackground.style.display = 'none';
+          redBackground.style.display = 'block';
+          mediaRecorder.stop();
+        } else {
+          // Horizontal orientation
+          redBackground.style.display = 'none';
+          greenBackground.style.display = 'block';
+          mediaRecorder.start();
+        }
+  
+        if (window.innerWidth < window.innerHeight) {
+          videoContainer.style.height = '90vh';
+        } else {
+          videoContainer.style.height = '100vh';
+        }
+      }
+  
+      handleOrientationChange();
+  
+      window.addEventListener('orientationchange', handleOrientationChange);
+      window.addEventListener('resize', handleOrientationChange);
+    }
+  
+    main();
+  </script>
+</body>
+</html>
