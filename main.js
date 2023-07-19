@@ -75,8 +75,8 @@ async function main() {
   document.body.appendChild(shareButton);
 
   async function uploadToDrive(file, fileName) {
-    const apiKey = 'AIzaSyD8Ic03HrQku5sXbI9-9l558NJ9ch-lLeM';
-    const folderId = '1nZcp0nIWpZJgHrCksGvu-MBBoUWeKzi5';
+    const apiKey = '';
+    const folderId = '';
 
     const metadata = {
       name: fileName,
