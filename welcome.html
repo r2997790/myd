@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Awesome Video Recorder</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+      overflow: hidden;
+    }
+    .landscape-content {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .portrait-message {
+      display: none;
+      background-color: red;
+      color: white;
+      font-size: 24px;
+      text-align: center;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .video-container {
+      position: relative;
+      width: 100%;
+      max-width: 640px;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+    video {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .controls {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 0 10px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #3498db;
+      color: #fff;
+    }
+    #recordBtn {
+      background-color: #e74c3c;
+      color: #fff;
+    }
+    #stopBtn {
+      background-color: #f39c12;
+      color: #fff;
+    }
+    #saveBtn {
+      background-color: #2ecc71;
+      color: #fff;
+    }
+    @media screen and (orientation: landscape) {
+      .landscape-content {
+        display: flex;
+      }
+    }
+    @media screen and (orientation: portrait) {
+      .portrait-message {
+        display: flex;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="landscape-content">
+    <div class="video-container">
+      <video id="videoElement" autoplay playsinline></video>
+      <div class="controls">
+        <button id="recordBtn">Record</button>
+        <button id="stopBtn" disabled>Stop</button>
+        <button id="saveBtn">Save as WebM</button>
+      </div>
+    </div>
+  </div>
+  <div class="portrait-message">
+    Please rotate your device to landscape mode for recording.
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const videoElement = document.getElementById('videoElement');
+      const recordBtn = document.getElementById('recordBtn');
+      const stopBtn = document.getElementById('stopBtn');
+      const saveBtn = document.getElementById('saveBtn');
+      let mediaRecorder;
+      let recordedChunks = [];
+
+      function checkOrientation() {
+        if (window.innerHeight > window.innerWidth) {
+          alert('Please rotate your device to landscape mode for recording.');
+        }
+      }
+
+      recordBtn.addEventListener('click', () => {
+        checkOrientation();
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+          .then(stream => {
+            videoElement.srcObject = stream;
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+
+            mediaRecorder.ondataavailable = event => {
+              if (event.data.size > 0) {
+                recordedChunks.push(event.data);
+              }
+            };
+
+            mediaRecorder.start();
+            recordBtn.disabled = true;
+            recordBtn.textContent = 'Recording...';
+            stopBtn.disabled = false;
+          })
+          .catch(error => {
+            console.error('Error accessing media devices:', error);
+          });
+      });
+
+      stopBtn.addEventListener('click', () => {
+        mediaRecorder.stop();
+        recordBtn.disabled = false;
+        recordBtn.textContent = 'Record';
+        stopBtn.disabled = true;
+      });
+
+      saveBtn.addEventListener('click', () => {
+        if (recordedChunks.length > 0) {
+          const blob = new Blob(recordedChunks, { type: 'video/webm' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'recorded-video.webm';
+          document.body.appendChild(a);
+          a.click();
+          recordedChunks = [];
+          URL.revokeObjectURL(url);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
