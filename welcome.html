@@ -17,6 +17,7 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
+      flex-direction: column;
     }
     .portrait-message {
       display: none;
@@ -76,8 +77,14 @@
       .landscape-content {
         display: flex;
       }
+      .portrait-message {
+        display: none;
+      }
     }
     @media screen and (orientation: portrait) {
+      .landscape-content {
+        display: none;
+      }
       .portrait-message {
         display: flex;
       }
@@ -109,12 +116,18 @@
 
       function checkOrientation() {
         if (window.innerHeight > window.innerWidth) {
-          alert('Please rotate your device to landscape mode for recording.');
+          document.querySelector('.portrait-message').style.display = 'flex';
+          document.querySelector('.landscape-content').style.display = 'none';
+        } else {
+          document.querySelector('.portrait-message').style.display = 'none';
+          document.querySelector('.landscape-content').style.display = 'flex';
         }
       }
 
+      window.addEventListener('resize', checkOrientation);
+      checkOrientation(); // Initial check
+
       recordBtn.addEventListener('click', () => {
-        checkOrientation();
         navigator.mediaDevices.getUserMedia({ video: true, audio: true })
           .then(stream => {
             videoElement.srcObject = stream;
