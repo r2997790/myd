@@ -32,7 +32,9 @@
     }
     .video-container {
       position: relative;
-      height: 70%;
+      width: 100%;
+      max-width: 70%;
+      aspect-ratio: 16 / 9;
       border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
@@ -41,8 +43,8 @@
       align-items: center;
     }
     video {
+      width: 100%;
       height: 100%;
-      width: auto;
       display: block;
     }
     .controls {
@@ -106,7 +108,7 @@
 <body>
   <div class="landscape-content">
     <div class="video-container">
-      <video id="videoElement" autoplay playsinline></video>
+      <video id="videoElement" autoplay playsinline muted></video>
     </div>
     <div class="controls">
       <div class="timer" id="timer">02:00</div>
@@ -176,6 +178,7 @@
         };
 
         mediaRecorder.start();
+        videoElement.muted = false;
         recordBtn.classList.add('recording');
         recordBtn.disabled = true;
         recordBtn.textContent = 'Recording...';
@@ -185,6 +188,7 @@
 
       function stopRecording() {
         mediaRecorder.stop();
+        videoElement.muted = true;
         recordBtn.classList.remove('recording');
         recordBtn.disabled = false;
         recordBtn.textContent = 'Record';
