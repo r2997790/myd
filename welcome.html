@@ -17,7 +17,7 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
-      flex-direction: column;
+      flex-direction: row;
     }
     .portrait-message {
       display: none;
@@ -32,25 +32,29 @@
     }
     .video-container {
       position: relative;
-      width: 100%;
-      max-width: 640px;
+      height: 70vh;
       border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
     video {
-      width: 100%;
-      height: auto;
+      height: 100%;
+      width: auto;
       display: block;
     }
     .controls {
       display: flex;
+      flex-direction: column;
       justify-content: center;
-      margin-top: 20px;
+      margin-left: 20px;
+      width: min(15vw, 300px);
     }
     button {
       padding: 10px 20px;
-      margin: 0 10px;
+      margin: 10px 0;
       border: none;
       border-radius: 5px;
       font-size: 16px;
@@ -95,11 +99,11 @@
   <div class="landscape-content">
     <div class="video-container">
       <video id="videoElement" autoplay playsinline></video>
-      <div class="controls">
-        <button id="recordBtn">Record</button>
-        <button id="stopBtn" disabled>Stop</button>
-        <button id="saveBtn">Save as WebM</button>
-      </div>
+    </div>
+    <div class="controls">
+      <button id="recordBtn">Record</button>
+      <button id="stopBtn" disabled>Stop</button>
+      <button id="saveBtn">Save as WebM</button>
     </div>
   </div>
   <div class="portrait-message">
