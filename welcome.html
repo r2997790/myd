@@ -110,6 +110,17 @@
       color: grey;
       display: none;
     }
+    .silhouette-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('silhouette.png') center center no-repeat;
+      background-size: contain;
+      opacity: 0.3;
+      display: block;
+    }
     @media screen and (orientation: landscape) {
       .landscape-content {
         display: flex;
@@ -146,6 +157,7 @@
     <div class="video-container">
       <video id="videoElement" autoplay playsinline muted></video>
       <div class="countdown" id="countdown"></div>
+      <div class="silhouette-overlay" id="silhouetteOverlay"></div>
     </div>
     <div class="controls">
       <div class="timer" id="timer">02:00</div>
@@ -169,6 +181,7 @@
       const playBtn = document.getElementById('playBtn');
       const timerElement = document.getElementById('timer');
       const countdownElement = document.getElementById('countdown');
+      const silhouetteOverlay = document.getElementById('silhouetteOverlay');
       let mediaRecorder;
       let recordedChunks = [];
       let countdownInterval;
@@ -194,6 +207,9 @@
         const minutes = Math.floor(remainingTime / 60).toString().padStart(2, '0');
         const seconds = (remainingTime % 60).toString().padStart(2, '0');
         timerElement.textContent = `${minutes}:${seconds}`;
+        if (remainingTime === 120) {
+          silhouetteOverlay.style.display = 'block';
+        }
       }
 
       function startCountdown() {
@@ -229,6 +245,7 @@
         };
 
         mediaRecorder.start();
+        silhouetteOverlay.style.display = 'none';
         recordBtn.classList.add('recording');
         recordBtn.disabled = true;
         recordBtn.textContent = 'Recording...';
@@ -308,7 +325,7 @@
           recordedChunks = [];
           URL.revokeObjectURL(url);
         }
-      }); 
+      });
 
       switchCameraBtn.addEventListener('click', switchCamera);
 
