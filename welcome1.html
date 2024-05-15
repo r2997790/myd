@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Awesome Video Recorder</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+      overflow: hidden;
+    }
+    .landscape-content {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      height: 80vh; /* Adjusting for the navigation bar and title bar */
+      flex-direction: row;
+    }
+    .portrait-message {
+      display: none;
+      background-color: red;
+      color: white;
+      font-size: 24px;
+      text-align: center;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .video-container {
+      position: relative;
+      width: 100%;
+      max-width: 70%;
+      aspect-ratio: 16 / 9;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .video-container video {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .controls {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin-left: 10px;
+      width: min(15vw, 300px);
+    }
+    button {
+      padding: 5px 10px;
+      margin: 5px 0;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      width: 100%;
+      max-width: 150px;
+    }
+    button:hover {
+      background-color: #3498db;
+      color: #fff;
+    }
+    #recordBtn {
+      background-color: #e74c3c;
+      color: #fff;
+    }
+    #recordBtn.recording {
+      background-color: #c0392b;
+    }
+    #stopBtn {
+      background-color: #f39c12;
+      color: #fff;
+    }
+    #saveBtn {
+      background-color: #2ecc71;
+      color: #fff;
+    }
+    #switchCameraBtn {
+      background-color: #8e44ad;
+      color: #fff;
+    }
+    #playBtn {
+      background-color: #95a5a6;
+      color: #fff;
+    }
+    #playBtn:disabled {
+      background-color: #bdc3c7;
+    }
+    .timer {
+      font-size: 18px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .countdown {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 100px;
+      color: grey;
+      display: none;
+    }
+    .silhouette-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('https://github.com/r2997790/myd/blob/main/silhouette.png?raw=true') center center no-repeat;
+      background-size: contain;
+      opacity: 0.3;
+      display: block;
+    }
+    @media screen and (orientation: landscape) {
+      .landscape-content {
+        display: flex;
+      }
+      .portrait-message {
+        display: none;
+      }
+    }
+    @media screen and (orientation: portrait) {
+      .landscape-content {
+        display: none;
+      }
+      .portrait-message {
+        display: flex;
+      }
+    }
+    @media screen and (max-width: 1024px) {
+      .video-container {
+        height: 55vh; /* 55% of screen height */
+      }
+      #switchCameraBtn {
+        display: block;
+      }
+    }
+    @media screen and (min-width: 1024px) {
+      #switchCameraBtn {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="landscape-content">
+    <div class="video-container">
+      <video id="videoElement" autoplay playsinline muted></video>
+      <div class="countdown" id="countdown"></div>
+      <div class="silhouette-overlay" id="silhouetteOverlay"></div>
+    </div>
+    <div class="controls">
+      <div class="timer" id="timer">02:00</div>
+      <button id="recordBtn">Record</button>
+      <button id="stopBtn" disabled>Stop</button>
+      <button id="saveBtn">Save as WebM</button>
+      <button id="switchCameraBtn">Switch Camera</button>
+      <button id="playBtn" disabled>Play</button>
+    </div>
+  </div>
+  <div class="portrait-message">
+    Please rotate your device to landscape mode for recording.
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const videoElement = document.getElementById('videoElement');
+      const recordBtn = document.getElementById('recordBtn');
+      const stopBtn = document.getElementById('stopBtn');
+      const saveBtn = document.getElementById('saveBtn');
+      const switchCameraBtn = document.getElementById('switchCameraBtn');
+      const playBtn = document.getElementById('playBtn');
+      const timerElement = document.getElementById('timer');
+      const countdownElement = document.getElementById('countdown');
+      const silhouetteOverlay = document.getElementById('silhouetteOverlay');
+      let mediaRecorder;
+      let recordedChunks = [];
+      let countdownInterval;
+      let remainingTime = 120; // 2 minutes in seconds
+      let stream;
+      let currentFacingMode = 'user'; // Front camera
+      let recordedVideoURL;
+
+      function checkOrientation() {
+        if (window.innerHeight > window.innerWidth) {
+          document.querySelector('.portrait-message').style.display = 'flex';
+          document.querySelector('.landscape-content').style.display = 'none';
+        } else {
+          document.querySelector('.portrait-message').style.display = 'none';
+          document.querySelector('.landscape-content').style.display = 'flex';
+        }
+      }
+
+      window.addEventListener('resize', checkOrientation);
+      checkOrientation(); // Initial check
+
+      function updateTimer() {
+        const minutes = Math.floor(remainingTime / 60).toString().padStart(2, '0');
+        const seconds = (remainingTime % 60).toString().padStart(2, '0');
+        timerElement.textContent = `${minutes}:${seconds}`;
+        if (remainingTime === 120) {
+          silhouetteOverlay.style.display = 'block';
+        }
+      }
+
+      function startCountdown() {
+        updateTimer();
+        countdownInterval = setInterval(() => {
+          remainingTime--;
+          updateTimer();
+          if (remainingTime <= 0) {
+            stopRecording();
+          }
+        }, 1000);
+      }
+
+      function stopCountdown() {
+        clearInterval(countdownInterval);
+        remainingTime = 120;
+        updateTimer();
+      }
+
+      function startRecording(stream) {
+        mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+
+        mediaRecorder.ondataavailable = event => {
+          if (event.data.size > 0) {
+            recordedChunks.push(event.data);
+          }
+        };
+
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(recordedChunks, { type: 'video/webm' });
+          recordedVideoURL = URL.createObjectURL(blob);
+          playBtn.disabled = false;
+        };
+
+        mediaRecorder.start();
+        silhouetteOverlay.style.display = 'none';
+        recordBtn.classList.add('recording');
+        recordBtn.disabled = true;
+        recordBtn.textContent = 'Recording...';
+        stopBtn.disabled = false;
+        playBtn.disabled = true;
+        startCountdown();
+      }
+
+      function stopRecording() {
+        mediaRecorder.stop();
+        recordBtn.classList.remove('recording');
+        recordBtn.disabled = false;
+        recordBtn.textContent = 'Record';
+        stopBtn.disabled = true;
+        stopCountdown();
+      }
+
+      async function switchCamera() {
+        currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+        }
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: currentFacingMode }, 
+            audio: true 
+          });
+          videoElement.srcObject = stream;
+          if (mediaRecorder && mediaRecorder.state === "recording") {
+            stopRecording();
+            startRecording(stream);
+          }
+        } catch (error) {
+          console.error('Error switching camera:', error);
+        }
+      }
+
+      function displayCountdown(seconds) {
+        countdownElement.style.display = 'block';
+        countdownElement.textContent = seconds;
+        const countdown = setInterval(() => {
+          seconds--;
+          countdownElement.textContent = seconds;
+          if (seconds <= 0) {
+            clearInterval(countdown);
+            countdownElement.style.display = 'none';
+            startRecording(stream);
+          }
+        }, 1000);
+      }
+
+      recordBtn.addEventListener('click', () => {
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode }, audio: true })
+          .then(s => {
+            stream = s;
+            videoElement.srcObject = stream;
+            silhouetteOverlay.style.display = 'none';
+            displayCountdown(3);
+          })
+          .catch(error => {
+            console.error('Error accessing media devices:', error);
+          });
+      });
+
+      stopBtn.addEventListener('click', () => {
+        stopRecording();
+      });
+
+      saveBtn.addEventListener('click', () => {
+        if (recordedChunks.length > 0) {
+          const blob = new Blob(recordedChunks, { type: 'video/webm' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'recorded-video.webm';
+          document.body.appendChild(a);
+          a.click();
+          recordedChunks = [];
+          URL.revokeObjectURL(url);
+        }
+      });
+
+      switchCameraBtn.addEventListener('click', switchCamera);
+
+      playBtn.addEventListener('click', () => {
+        if (recordedVideoURL) {
+          videoElement.srcObject = null;
+          videoElement.src = recordedVideoURL;
+          videoElement.muted = false;
+          videoElement.play();
+        }
+      });
+
+      // Initial display of the silhouette overlay
+      silhouetteOverlay.style.display = 'block';
+    });
+  </script>
+</body>
+</html>
