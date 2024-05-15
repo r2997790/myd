@@ -274,6 +274,7 @@
             audio: true 
           });
           videoElement.srcObject = stream;
+          silhouetteOverlay.style.display = 'block';
           if (mediaRecorder && mediaRecorder.state === "recording") {
             stopRecording();
             startRecording(stream);
@@ -302,7 +303,6 @@
           .then(s => {
             stream = s;
             videoElement.srcObject = stream;
-            silhouetteOverlay.style.display = 'none';
             displayCountdown(3);
           })
           .catch(error => {
