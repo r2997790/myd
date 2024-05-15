@@ -34,6 +34,7 @@
       position: relative;
       width: 100%;
       max-width: 70%;
+      height: auto;
       aspect-ratio: 16 / 9;
       border-radius: 8px;
       overflow: hidden;
@@ -119,7 +120,6 @@
       background: url('https://raw.githubusercontent.com/r2997790/myd/main/silouette.png') center center no-repeat;
       background-size: contain;
       opacity: 0.3;
-      display: block;
       pointer-events: none; /* Ensure overlay does not interfere with video */
     }
     @media screen and (orientation: landscape) {
@@ -201,6 +201,14 @@
         }
       }
 
+      function showSilhouetteOverlay() {
+        if (currentFacingMode === 'user' && !mediaRecorder?.state) {
+          silhouetteOverlay.style.display = 'block';
+        } else {
+          silhouetteOverlay.style.display = 'none';
+        }
+      }
+
       window.addEventListener('resize', checkOrientation);
       checkOrientation(); // Initial check
 
@@ -209,7 +217,7 @@
         const seconds = (remainingTime % 60).toString().padStart(2, '0');
         timerElement.textContent = `${minutes}:${seconds}`;
         if (remainingTime === 120) {
-          silhouetteOverlay.style.display = 'block';
+          showSilhouetteOverlay();
         }
       }
 
@@ -230,7 +238,7 @@
         updateTimer();
       }
 
-      function startRecording(stream) {
+      function startRecording() {
         mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
 
         mediaRecorder.ondataavailable = event => {
@@ -243,7 +251,7 @@
           const blob = new Blob(recordedChunks, { type: 'video/webm' });
           recordedVideoURL = URL.createObjectURL(blob);
           playBtn.disabled = false;
-          silhouetteOverlay.style.display = 'block';
+          showSilhouetteOverlay();
         };
 
         mediaRecorder.start();
@@ -276,10 +284,10 @@
             audio: true 
           });
           videoElement.srcObject = stream;
-          silhouetteOverlay.style.display = 'block';
+          showSilhouetteOverlay();
           if (mediaRecorder && mediaRecorder.state === "recording") {
             stopRecording();
-            startRecording(stream);
+            startRecording();
           }
         } catch (error) {
           console.error('Error switching camera:', error);
@@ -295,7 +303,7 @@
           if (seconds <= 0) {
             clearInterval(countdown);
             countdownElement.style.display = 'none';
-            startRecording(stream);
+            startRecording();
           }
         }, 1000);
       }
@@ -343,7 +351,7 @@
       });
 
       // Initial display of the silhouette overlay
-      silhouetteOverlay.style.display = 'block';
+      showSilhouetteOverlay();
     });
   </script>
 </body>
