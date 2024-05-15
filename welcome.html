@@ -89,6 +89,13 @@
       background-color: #8e44ad;
       color: #fff;
     }
+    #playBtn {
+      background-color: #95a5a6;
+      color: #fff;
+    }
+    #playBtn:disabled {
+      background-color: #bdc3c7;
+    }
     .timer {
       font-size: 18px;
       margin-bottom: 10px;
@@ -136,6 +143,7 @@
       <button id="stopBtn" disabled>Stop</button>
       <button id="saveBtn">Save as WebM</button>
       <button id="switchCameraBtn">Switch Camera</button>
+      <button id="playBtn" disabled>Play</button>
     </div>
   </div>
   <div class="portrait-message">
@@ -148,6 +156,7 @@
       const stopBtn = document.getElementById('stopBtn');
       const saveBtn = document.getElementById('saveBtn');
       const switchCameraBtn = document.getElementById('switchCameraBtn');
+      const playBtn = document.getElementById('playBtn');
       const timerElement = document.getElementById('timer');
       let mediaRecorder;
       let recordedChunks = [];
@@ -155,6 +164,7 @@
       let remainingTime = 120; // 2 minutes in seconds
       let stream;
       let currentFacingMode = 'user'; // Front camera
+      let recordedVideoURL;
 
       function checkOrientation() {
         if (window.innerHeight > window.innerWidth) {
@@ -201,11 +211,18 @@
           }
         };
 
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(recordedChunks, { type: 'video/webm' });
+          recordedVideoURL = URL.createObjectURL(blob);
+          playBtn.disabled = false;
+        };
+
         mediaRecorder.start();
         recordBtn.classList.add('recording');
         recordBtn.disabled = true;
         recordBtn.textContent = 'Recording...';
         stopBtn.disabled = false;
+        playBtn.disabled = true;
         startCountdown();
       }
 
@@ -269,6 +286,15 @@
       });
 
       switchCameraBtn.addEventListener('click', switchCamera);
+
+      playBtn.addEventListener('click', () => {
+        if (recordedVideoURL) {
+          videoElement.srcObject = null;
+          videoElement.src = recordedVideoURL;
+          videoElement.muted = false;
+          videoElement.play();
+        }
+      });
     });
   </script>
 </body>
