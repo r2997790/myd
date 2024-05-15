@@ -32,10 +32,8 @@
     }
     .video-container {
       position: relative;
-      width: 100%;
-      max-width: 70%;
-      height: auto;
-      aspect-ratio: 16 / 9;
+      width: calc((80vh / 9) * 16); /* Formula for width */
+      height: 80vh;
       border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
@@ -141,6 +139,7 @@
     @media screen and (max-width: 1024px) {
       .video-container {
         height: 55vh; /* 55% of screen height */
+        width: calc((55vh / 9) * 16); /* Adjusting the width accordingly */
       }
       #switchCameraBtn {
         display: block;
@@ -162,7 +161,7 @@
     </div>
     <div class="controls">
       <div class="timer" id="timer">02:00</div>
-      <button id="recordBtn">Record</button>
+      <button id="recordBtn">Record!</button>
       <button id="stopBtn" disabled>Stop</button>
       <button id="saveBtn">Save as WebM</button>
       <button id="switchCameraBtn">Switch Camera</button>
@@ -170,10 +169,10 @@
     </div>
   </div>
   <div class="portrait-message">
-    Please rotate your device to landscape mode for recording!
+    Please rotate your device to landscape mode for recording.
   </div>
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", async () => {
       const videoElement = document.getElementById('videoElement');
       const recordBtn = document.getElementById('recordBtn');
       const stopBtn = document.getElementById('stopBtn');
@@ -191,6 +190,14 @@
       let currentFacingMode = 'user'; // Front camera
       let recordedVideoURL;
 
+      // Prompt for video access as soon as the site loads
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode }, audio: true });
+        videoElement.srcObject = stream;
+      } catch (error) {
+        console.error('Error accessing media devices:', error);
+      }
+
       function checkOrientation() {
         if (window.innerHeight > window.innerWidth) {
           document.querySelector('.portrait-message').style.display = 'flex';
@@ -202,7 +209,7 @@
       }
 
       function showSilhouetteOverlay() {
-        if (currentFacingMode === 'user' && !mediaRecorder?.state) {
+        if (currentFacingMode === 'user' && (!mediaRecorder || mediaRecorder.state === 'inactive')) {
           silhouetteOverlay.style.display = 'block';
         } else {
           silhouetteOverlay.style.display = 'none';
@@ -309,16 +316,7 @@
       }
 
       recordBtn.addEventListener('click', () => {
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode }, audio: true })
-          .then(s => {
-            stream = s;
-            videoElement.srcObject = stream;
-            silhouetteOverlay.style.display = 'none';
-            displayCountdown(3);
-          })
-          .catch(error => {
-            console.error('Error accessing media devices:', error);
-          });
+        displayCountdown(3);
       });
 
       stopBtn.addEventListener('click', () => {
