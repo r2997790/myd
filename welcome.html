@@ -101,6 +101,15 @@
       margin-bottom: 10px;
       text-align: center;
     }
+    .countdown {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 100px;
+      color: grey;
+      display: none;
+    }
     @media screen and (orientation: landscape) {
       .landscape-content {
         display: flex;
@@ -136,6 +145,7 @@
   <div class="landscape-content">
     <div class="video-container">
       <video id="videoElement" autoplay playsinline muted></video>
+      <div class="countdown" id="countdown"></div>
     </div>
     <div class="controls">
       <div class="timer" id="timer">02:00</div>
@@ -158,6 +168,7 @@
       const switchCameraBtn = document.getElementById('switchCameraBtn');
       const playBtn = document.getElementById('playBtn');
       const timerElement = document.getElementById('timer');
+      const countdownElement = document.getElementById('countdown');
       let mediaRecorder;
       let recordedChunks = [];
       let countdownInterval;
@@ -255,17 +266,31 @@
         }
       }
 
+      function displayCountdown(seconds) {
+        countdownElement.style.display = 'block';
+        countdownElement.textContent = seconds;
+        const countdown = setInterval(() => {
+          seconds--;
+          countdownElement.textContent = seconds;
+          if (seconds <= 0) {
+            clearInterval(countdown);
+            countdownElement.style.display = 'none';
+            startRecording(stream);
+          }
+        }, 1000);
+      }
+
       recordBtn.addEventListener('click', () => {
         navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode }, audio: true })
           .then(s => {
             stream = s;
             videoElement.srcObject = stream;
-            startRecording(stream);
+            displayCountdown(3);
           })
           .catch(error => {
             console.error('Error accessing media devices:', error);
           });
-      }); 
+      });
 
       stopBtn.addEventListener('click', () => {
         stopRecording();
