@@ -169,7 +169,7 @@
     </div>
   </div>
   <div class="portrait-message">
-    Please rotate your device to landscape mode for recording?
+    Please rotate your device to landscape mode for recording^
   </div>
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
@@ -258,7 +258,9 @@
           playBtn.disabled = false;
           videoElement.srcObject = null;
           videoElement.src = recordedVideoURL;
-          showSilhouetteOverlay();
+          videoElement.onended = () => {
+            setTimeout(showSilhouetteOverlay, 1000); // Show silhouette overlay 1 second after video stops
+          };
         };
 
         mediaRecorder.start();
@@ -317,6 +319,7 @@
       }
 
       recordBtn.addEventListener('click', () => {
+        window.location.reload(); // Refresh the page to reset everything
         displayCountdown(3);
       });
 
@@ -345,6 +348,7 @@
           videoElement.srcObject = null;
           videoElement.src = recordedVideoURL;
           videoElement.muted = false;
+          silhouetteOverlay.style.display = 'none';
           videoElement.play();
         }
       });
