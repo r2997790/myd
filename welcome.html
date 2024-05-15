@@ -82,6 +82,10 @@
       background-color: #2ecc71;
       color: #fff;
     }
+    #switchCameraBtn {
+      background-color: #8e44ad;
+      color: #fff;
+    }
     .timer {
       font-size: 24px;
       margin-bottom: 10px;
@@ -103,6 +107,11 @@
         display: flex;
       }
     }
+    @media screen and (min-width: 1024px) {
+      #switchCameraBtn {
+        display: none;
+      }
+    }
   </style>
 </head>
 <body>
@@ -115,6 +124,7 @@
       <button id="recordBtn">Record</button>
       <button id="stopBtn" disabled>Stop</button>
       <button id="saveBtn">Save as WebM</button>
+      <button id="switchCameraBtn">Switch Camera</button>
     </div>
   </div>
   <div class="portrait-message">
@@ -126,11 +136,14 @@
       const recordBtn = document.getElementById('recordBtn');
       const stopBtn = document.getElementById('stopBtn');
       const saveBtn = document.getElementById('saveBtn');
+      const switchCameraBtn = document.getElementById('switchCameraBtn');
       const timerElement = document.getElementById('timer');
       let mediaRecorder;
       let recordedChunks = [];
       let countdownInterval;
       let remainingTime = 120; // 2 minutes in seconds
+      let stream;
+      let currentFacingMode = 'user'; // Front camera
 
       function checkOrientation() {
         if (window.innerHeight > window.innerWidth) {
@@ -196,9 +209,30 @@
         stopCountdown();
       }
 
+      async function switchCamera() {
+        currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+        }
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: currentFacingMode }, 
+            audio: true 
+          });
+          videoElement.srcObject = stream;
+          if (mediaRecorder && mediaRecorder.state === "recording") {
+            stopRecording();
+            startRecording(stream);
+          }
+        } catch (error) {
+          console.error('Error switching camera:', error);
+        }
+      }
+
       recordBtn.addEventListener('click', () => {
-        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-          .then(stream => {
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode }, audio: true })
+          .then(s => {
+            stream = s;
             videoElement.srcObject = stream;
             startRecording(stream);
           })
@@ -224,6 +258,8 @@
           URL.revokeObjectURL(url);
         }
       });
+
+      switchCameraBtn.addEventListener('click', switchCamera);
     });
   </script>
 </body>
