@@ -243,6 +243,7 @@
           const blob = new Blob(recordedChunks, { type: 'video/webm' });
           recordedVideoURL = URL.createObjectURL(blob);
           playBtn.disabled = false;
+          silhouetteOverlay.style.display = 'block';
         };
 
         mediaRecorder.start();
@@ -304,6 +305,7 @@
           .then(s => {
             stream = s;
             videoElement.srcObject = stream;
+            silhouetteOverlay.style.display = 'none';
             displayCountdown(3);
           })
           .catch(error => {
