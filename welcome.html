@@ -116,7 +116,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: url('https://github.com/r2997790/myd/blob/main/silhouette.png') center center no-repeat;
+      background: url('https://github.com/r2997790/myd/blob/main/silhouette.png?raw=true') center center no-repeat;
       background-size: contain;
       opacity: 0.3;
       display: block;
@@ -302,6 +302,7 @@
           .then(s => {
             stream = s;
             videoElement.srcObject = stream;
+            silhouetteOverlay.style.display = 'none';
             displayCountdown(3);
           })
           .catch(error => {
@@ -337,7 +338,10 @@
           videoElement.play();
         }
       });
+
+      // Initial display of the silhouette overlay
+      silhouetteOverlay.style.display = 'block';
     });
   </script>
 </body>
-</html> 
+</html>
