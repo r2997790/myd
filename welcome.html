@@ -161,7 +161,7 @@
     </div>
     <div class="controls">
       <div class="timer" id="timer">02:00</div>
-      <button id="recordBtn">Record!</button>
+      <button id="recordBtn">Record</button>
       <button id="stopBtn" disabled>Stop</button>
       <button id="saveBtn">Save as WebM</button>
       <button id="switchCameraBtn">Switch Camera</button>
@@ -169,7 +169,7 @@
     </div>
   </div>
   <div class="portrait-message">
-    Please rotate your device to landscape mode for recording.
+    Please rotate your device to landscape mode for recording?
   </div>
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
@@ -194,6 +194,7 @@
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode }, audio: true });
         videoElement.srcObject = stream;
+        showSilhouetteOverlay();
       } catch (error) {
         console.error('Error accessing media devices:', error);
       }
@@ -223,9 +224,6 @@
         const minutes = Math.floor(remainingTime / 60).toString().padStart(2, '0');
         const seconds = (remainingTime % 60).toString().padStart(2, '0');
         timerElement.textContent = `${minutes}:${seconds}`;
-        if (remainingTime === 120) {
-          showSilhouetteOverlay();
-        }
       }
 
       function startCountdown() {
@@ -258,6 +256,8 @@
           const blob = new Blob(recordedChunks, { type: 'video/webm' });
           recordedVideoURL = URL.createObjectURL(blob);
           playBtn.disabled = false;
+          videoElement.srcObject = null;
+          videoElement.src = recordedVideoURL;
           showSilhouetteOverlay();
         };
 
@@ -302,6 +302,7 @@
       }
 
       function displayCountdown(seconds) {
+        silhouetteOverlay.style.display = 'none';
         countdownElement.style.display = 'block';
         countdownElement.textContent = seconds;
         const countdown = setInterval(() => {
