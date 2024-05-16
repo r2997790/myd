@@ -169,7 +169,7 @@
     </div>
   </div>
   <div class="portrait-message">
-    Please rotate your device to landscape mode for recording2.
+    Please rotate your device to landscape mode for recording3.
   </div>
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
@@ -195,6 +195,7 @@
         try {
           stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode }, audio: true });
           videoElement.srcObject = stream;
+          videoElement.muted = true; // Mute the audio to avoid feedback
           showSilhouetteOverlay();
         } catch (error) {
           console.error('Error accessing media devices:', error);
@@ -261,12 +262,8 @@
           const blob = new Blob(recordedChunks, { type: 'video/webm' });
           recordedVideoURL = URL.createObjectURL(blob);
           playBtn.disabled = false;
-          videoElement.srcObject = null;
-          videoElement.src = recordedVideoURL;
-          videoElement.onended = () => {
-            setTimeout(showSilhouetteOverlay, 1000); // Show silhouette overlay 1 second after video stops
-            getStream(); // Reload the live stream after playback ends
-          };
+          videoElement.srcObject = stream; // Reset the live stream after recording stops
+          videoElement.muted = true; // Ensure the audio is muted to avoid feedback
         };
 
         mediaRecorder.start();
