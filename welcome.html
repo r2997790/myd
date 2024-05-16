@@ -169,7 +169,7 @@
     </div>
   </div>
   <div class="portrait-message">
-    Please rotate your device to landscape mode for recording£.
+    Please rotate your device to landscape mode for recording1.
   </div>
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
@@ -244,6 +244,7 @@
       }
 
       function startRecording() {
+        recordedChunks = []; // Clear previous recordings
         mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
 
         mediaRecorder.ondataavailable = event => {
@@ -335,7 +336,6 @@
           a.download = 'recorded-video.webm';
           document.body.appendChild(a);
           a.click();
-          recordedChunks = [];
           URL.revokeObjectURL(url);
         }
       });
