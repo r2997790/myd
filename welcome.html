@@ -169,7 +169,7 @@
     </div>
   </div>
   <div class="portrait-message">
-    Please rotate your device to landscape mode for recording3.
+    Please rotate your device to landscape mode for recording4.
   </div>
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
@@ -262,7 +262,7 @@
           const blob = new Blob(recordedChunks, { type: 'video/webm' });
           recordedVideoURL = URL.createObjectURL(blob);
           playBtn.disabled = false;
-          videoElement.srcObject = stream; // Reset the live stream after recording stops
+          // Do not reset the srcObject to the stream here to avoid auto-playing the recorded video
           videoElement.muted = true; // Ensure the audio is muted to avoid feedback
         };
 
@@ -344,6 +344,13 @@
           silhouetteOverlay.style.display = 'none';
           videoElement.play();
         }
+      });
+
+      // Handle the event when video playback ends
+      videoElement.addEventListener('ended', async () => {
+        // Reset the video element to show the live stream
+        await getStream();
+        showSilhouetteOverlay();
       });
 
       // Initial display of the silhouette overlay
