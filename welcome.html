@@ -169,7 +169,7 @@
     </div>
   </div>
   <div class="portrait-message">
-    Please rotate your device to landscape mode for recording1.
+    Please rotate your device to landscape mode for recording.
   </div>
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
@@ -191,13 +191,17 @@
       let recordedVideoURL;
 
       // Prompt for video access as soon as the site loads
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode }, audio: true });
-        videoElement.srcObject = stream;
-        showSilhouetteOverlay();
-      } catch (error) {
-        console.error('Error accessing media devices:', error);
+      async function getStream() {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode }, audio: true });
+          videoElement.srcObject = stream;
+          showSilhouetteOverlay();
+        } catch (error) {
+          console.error('Error accessing media devices:', error);
+        }
       }
+
+      await getStream();
 
       function checkOrientation() {
         if (window.innerHeight > window.innerWidth) {
@@ -261,6 +265,7 @@
           videoElement.src = recordedVideoURL;
           videoElement.onended = () => {
             setTimeout(showSilhouetteOverlay, 1000); // Show silhouette overlay 1 second after video stops
+            getStream(); // Reload the live stream after playback ends
           };
         };
 
@@ -288,19 +293,11 @@
         if (stream) {
           stream.getTracks().forEach(track => track.stop());
         }
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { facingMode: currentFacingMode }, 
-            audio: true 
-          });
-          videoElement.srcObject = stream;
-          showSilhouetteOverlay();
-          if (mediaRecorder && mediaRecorder.state === "recording") {
-            stopRecording();
-            startRecording();
-          }
-        } catch (error) {
-          console.error('Error switching camera:', error);
+        await getStream();
+        showSilhouetteOverlay();
+        if (mediaRecorder && mediaRecorder.state === "recording") {
+          stopRecording();
+          startRecording();
         }
       }
 
